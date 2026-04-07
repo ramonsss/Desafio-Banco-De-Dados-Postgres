@@ -3,7 +3,7 @@ import psycopg2
 from datetime import datetime
 import re
 
-# ===== CONFIG =====
+# ----config----
 CSV_PATH = "games.csv"
 
 conn = psycopg2.connect(
@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 df = pd.read_csv(CSV_PATH)
 
-# ===== CACHE =====
+# ---cache---
 cache = {
     "developers": {},
     "publishers": {},
@@ -27,7 +27,7 @@ cache = {
     "platforms": {}
 }
 
-# ===== FUNÇÕES =====
+# --- funções ---
 def clean(value):
     if pd.isna(value):
         return None
@@ -71,11 +71,11 @@ def get_or_create(table, value):
 
     value = value.strip()
 
-    # CACHE
+    # cache
     if value in cache[table]:
         return cache[table][value]
 
-    # BANCO
+    # banco
     cur.execute(f"SELECT id FROM {table} WHERE name = %s", (value,))
     result = cur.fetchone()
 
@@ -83,7 +83,7 @@ def get_or_create(table, value):
         cache[table][value] = result[0]
         return result[0]
 
-    # INSERT
+    # insert
     cur.execute(f"INSERT INTO {table} (name) VALUES (%s) RETURNING id", (value,))
     new_id = cur.fetchone()[0]
 
@@ -91,7 +91,7 @@ def get_or_create(table, value):
     return new_id
 
 
-# ===== LOOP PRINCIPAL =====
+# ----loop principal----
 for i, row in df.iterrows():
 
     game_id = int(row['AppID'])
@@ -100,7 +100,7 @@ for i, row in df.iterrows():
     if i % 500 == 0:
         print(f"{i} jogos processados")
 
-    # GAMES
+    # games
     owners_min, owners_max = parse_owners(row['Estimated owners'])
     cur.execute("""
         INSERT INTO games (
@@ -137,7 +137,7 @@ for i, row in df.iterrows():
         row['Median playtime two weeks']
     ))
 
-    # GAME DETALIS
+    # game details
     cur.execute("""
         INSERT INTO game_details (
             appid, about, notes, reviews, website,
@@ -157,7 +157,7 @@ for i, row in df.iterrows():
         clean(row['Metacritic url'])
     ))
 
-    # PLATFORMS
+    # platafomrs
     platforms = {
         'Windows': row['Windows'],
         'Mac': row['Mac'],
@@ -173,9 +173,9 @@ for i, row in df.iterrows():
                 ON CONFLICT DO NOTHING;
             """, (game_id, pid))
 
-    # DEVELOPERS
+    # developers
     if pd.notna(row['Developers']):
-        for dev in str(row['Developers']).split(';'):
+        for dev in split_values(row['Developers']):
             did = get_or_create("developers", dev)
             if did:
                 cur.execute("""
@@ -184,9 +184,9 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, did))
 
-    # PUBLISHERS
+    # publishers
     if pd.notna(row['Publishers']):
-        for pub in str(row['Publishers']).split(';'):
+        for pub in split_values(row['Publishers']):
             pid = get_or_create("publishers", pub)
             if pid:
                 cur.execute("""
@@ -195,7 +195,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, pid))
 
-    # GENRES
+    # genres
     if pd.notna(row['Genres']):
         for genre in split_values(row['Genres']):
             gid = get_or_create("genres", genre)
@@ -206,7 +206,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, gid))
 
-    # CATEGORIES
+    # categories
     if pd.notna(row['Categories']):
         for cat in split_values(row['Categories']):
             cid = get_or_create("categories", cat)
@@ -217,7 +217,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, cid))
 
-    # TAGS
+    # tags
     if pd.notna(row['Tags']):
         for tag in split_values(row['Tags']):
             tid = get_or_create("tags", tag)
@@ -228,7 +228,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, tid))
 
-    # LANGUAGES (SUPPORTED)
+    # languages (SUPPORTED)
     if pd.notna(row['Supported languages']):
         for lang in split_values(row['Supported languages']):
             lid = get_or_create("languages", lang)
@@ -239,7 +239,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, lid))
 
-    # LANGUAGES (AUDIO)
+    # languages (AUDIO)
     if pd.notna(row['Full audio languages']):
         for lang in split_values(row['Full audio languages']):
             lid = get_or_create("languages", lang)
@@ -250,7 +250,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, lid))
 
-    # SCREENSHOTS
+    # screenshots
     if pd.notna(row['Screenshots']):
         for sc in split_values(row['Screenshots']):
             cur.execute("""
@@ -258,7 +258,7 @@ for i, row in df.iterrows():
                 VALUES (%s,%s)
             """, (game_id, sc.strip()))
 
-    # MOVIES
+    # movies
     if pd.notna(row['Movies']):
         for mv in split_values(row['Movies']):
             cur.execute("""
@@ -266,7 +266,7 @@ for i, row in df.iterrows():
                 VALUES (%s,%s)
             """, (game_id, mv.strip()))
 
-    # COMMIT EM BLOCO
+    # commit em bloco
     if i % 1000 == 0:
         conn.commit()
 
@@ -275,4 +275,4 @@ conn.commit()
 cur.close()
 conn.close()
 
-print("BANCO POPULADO 100% COM SUCESSO!")
+print("BANCO POPULADOOOOO 100% COM SUCESSO!")
