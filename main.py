@@ -71,11 +71,11 @@ def get_or_create(table, value):
 
     value = value.strip()
 
-    # 🔥 CACHE
+    # CACHE
     if value in cache[table]:
         return cache[table][value]
 
-    # 🔎 BANCO
+    # BANCO
     cur.execute(f"SELECT id FROM {table} WHERE name = %s", (value,))
     result = cur.fetchone()
 
@@ -83,7 +83,7 @@ def get_or_create(table, value):
         cache[table][value] = result[0]
         return result[0]
 
-    # ➕ INSERT
+    # INSERT
     cur.execute(f"INSERT INTO {table} (name) VALUES (%s) RETURNING id", (value,))
     new_id = cur.fetchone()[0]
 
@@ -98,9 +98,9 @@ for i, row in df.iterrows():
 
     # PROGRESSO
     if i % 500 == 0:
-        print(f"🔥 {i} jogos processados")
+        print(f"{i} jogos processados")
 
-    # 🎮 GAMES
+    # GAMES
     owners_min, owners_max = parse_owners(row['Estimated owners'])
     cur.execute("""
         INSERT INTO games (
@@ -137,7 +137,7 @@ for i, row in df.iterrows():
         row['Median playtime two weeks']
     ))
 
-    # 📝 GAME DETAILS
+    # GAME DETALIS
     cur.execute("""
         INSERT INTO game_details (
             appid, about, notes, reviews, website,
@@ -157,7 +157,7 @@ for i, row in df.iterrows():
         clean(row['Metacritic url'])
     ))
 
-    # 🖥️ PLATFORMS
+    # PLATFORMS
     platforms = {
         'Windows': row['Windows'],
         'Mac': row['Mac'],
@@ -173,7 +173,7 @@ for i, row in df.iterrows():
                 ON CONFLICT DO NOTHING;
             """, (game_id, pid))
 
-    # 👨‍💻 DEVELOPERS
+    # DEVELOPERS
     if pd.notna(row['Developers']):
         for dev in str(row['Developers']).split(';'):
             did = get_or_create("developers", dev)
@@ -184,7 +184,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, did))
 
-    # 🏢 PUBLISHERS
+    # PUBLISHERS
     if pd.notna(row['Publishers']):
         for pub in str(row['Publishers']).split(';'):
             pid = get_or_create("publishers", pub)
@@ -195,7 +195,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, pid))
 
-    # 🎮 GENRES
+    # GENRES
     if pd.notna(row['Genres']):
         for genre in split_values(row['Genres']):
             gid = get_or_create("genres", genre)
@@ -206,7 +206,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, gid))
 
-    # 🧩 CATEGORIES
+    # CATEGORIES
     if pd.notna(row['Categories']):
         for cat in split_values(row['Categories']):
             cid = get_or_create("categories", cat)
@@ -217,7 +217,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, cid))
 
-    # 🏷️ TAGS
+    # TAGS
     if pd.notna(row['Tags']):
         for tag in split_values(row['Tags']):
             tid = get_or_create("tags", tag)
@@ -228,7 +228,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, tid))
 
-    # 🌍 LANGUAGES (SUPPORTED)
+    # LANGUAGES (SUPPORTED)
     if pd.notna(row['Supported languages']):
         for lang in split_values(row['Supported languages']):
             lid = get_or_create("languages", lang)
@@ -239,7 +239,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, lid))
 
-    # 🔊 LANGUAGES (AUDIO)
+    # LANGUAGES (AUDIO)
     if pd.notna(row['Full audio languages']):
         for lang in split_values(row['Full audio languages']):
             lid = get_or_create("languages", lang)
@@ -250,7 +250,7 @@ for i, row in df.iterrows():
                     ON CONFLICT DO NOTHING;
                 """, (game_id, lid))
 
-    # 🖼️ SCREENSHOTS
+    # SCREENSHOTS
     if pd.notna(row['Screenshots']):
         for sc in split_values(row['Screenshots']):
             cur.execute("""
@@ -258,7 +258,7 @@ for i, row in df.iterrows():
                 VALUES (%s,%s)
             """, (game_id, sc.strip()))
 
-    # 🎥 MOVIES
+    # MOVIES
     if pd.notna(row['Movies']):
         for mv in split_values(row['Movies']):
             cur.execute("""
@@ -266,7 +266,7 @@ for i, row in df.iterrows():
                 VALUES (%s,%s)
             """, (game_id, mv.strip()))
 
-    # 💾 COMMIT EM BLOCO
+    # COMMIT EM BLOCO
     if i % 1000 == 0:
         conn.commit()
 
@@ -275,4 +275,4 @@ conn.commit()
 cur.close()
 conn.close()
 
-print("🔥 BANCO POPULADO 100% COM SUCESSO!")
+print("BANCO POPULADO 100% COM SUCESSO!")
