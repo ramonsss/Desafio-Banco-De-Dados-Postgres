@@ -1,0 +1,197 @@
+-- GAMES
+CREATE TABLE games (
+    appid INT PRIMARY KEY,
+    name TEXT NOT NULL,
+    release_date DATE,
+  	estimated_owners_min INT,
+	estimated_owners_max INT,
+    peak_ccu INT,
+    required_age INT,
+    price NUMERIC(10,2),
+    discount INT,
+    dlc_count INT,
+    metacritic_score INT,
+    user_score INT,
+    positive INT,
+    negative INT,
+    score_rank TEXT,
+    achievements INT,
+    recommendations INT,
+    average_playtime_forever INT,
+    average_playtime_2weeks INT,
+    median_playtime_forever INT,
+    median_playtime_2weeks INT
+);
+
+-- detalhes do jogo
+
+CREATE TABLE game_details (
+	appid INT PRIMARY KEY,
+    about TEXT,
+    notes TEXT,
+    reviews TEXT,
+    website TEXT,
+    support_url TEXT,
+    support_email TEXT,
+    header_image TEXT,
+    metacritic_url TEXT,
+    FOREIGN KEY (appid) REFERENCES games(appid)
+);
+
+-- plataforma do jogo
+
+CREATE TABLE platforms (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+-- linkando jogo com a sua plataforma
+
+CREATE TABLE game_platforms (
+    game_id INT NOT NULL,
+    platform_id INT,
+    PRIMARY KEY (game_id, platform_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (platform_id) REFERENCES platforms(id)
+);
+
+-- desenvolvedores e publicadores
+
+CREATE TABLE developers (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE publishers (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE game_developers (
+    game_id INT NOT NULL,
+    developer_id INT,
+    PRIMARY KEY (game_id, developer_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (developer_id) REFERENCES developers(id)
+);
+
+CREATE TABLE game_publishers (
+    game_id INT NOT NULL,
+    publisher_id INT,
+    PRIMARY KEY (game_id, publisher_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (publisher_id) REFERENCES publishers(id)
+);
+
+-- genero, categorias e tags
+
+CREATE TABLE genres (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE game_genres (
+    game_id INT NOT NULL,
+    genre_id INT,
+    PRIMARY KEY (game_id, genre_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (genre_id) REFERENCES genres(id)
+);
+
+CREATE TABLE game_categories (
+    game_id INT NOT NULL,
+    category_id INT,
+    PRIMARY KEY (game_id, category_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE game_tags (
+    game_id INT NOT NULL,
+    tag_id INT,
+    PRIMARY KEY (game_id, tag_id),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (tag_id) REFERENCES tags(id)
+);
+
+-- linguagnes
+
+CREATE TABLE languages (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TYPE language_type AS ENUM ('supported', 'audio');
+
+CREATE TABLE game_languages (
+    game_id INT NOT NULL,
+    language_id INT,
+    type language_type,
+    PRIMARY KEY (game_id, language_id, type),
+    FOREIGN KEY (game_id) REFERENCES games(appid),
+    FOREIGN KEY (language_id) REFERENCES languages(id)
+);
+
+-- screenshots e filmes
+
+CREATE TABLE screenshots (
+    id SERIAL PRIMARY KEY,
+    game_id INT NOT NULL,
+    url TEXT,
+    FOREIGN KEY (game_id) REFERENCES games(appid)
+);
+
+CREATE TABLE movies (
+    id SERIAL PRIMARY KEY,
+    game_id INT NOT NULL,
+    url TEXT,
+    FOREIGN KEY (game_id) REFERENCES games(appid)
+);
+
+-- INDEX's
+
+CREATE INDEX idx_games_name ON games(name);
+
+CREATE INDEX idx_game_genres_game ON game_genres(game_id);
+CREATE INDEX idx_game_categories_game ON game_categories(game_id);
+CREATE INDEX idx_game_tags_game ON game_tags(game_id);
+CREATE INDEX idx_game_platforms_game ON game_platforms(game_id);
+
+TRUNCATE categories  CASCADE
+TRUNCATE developers CASCADE
+TRUNCATE game_categories
+TRUNCATE game_details
+TRUNCATE game_developers
+TRUNCATE game_genres
+TRUNCATE game_languages
+TRUNCATE game_platforms
+TRUNCATE game_platforms
+TRUNCATE game_publishers
+TRUNCATE game_tags
+TRUNCATE games CASCADE
+TRUNCATE genres CASCADE
+TRUNCATE languages CASCADE
+TRUNCATE movies
+TRUNCATE platforms CASCADE
+TRUNCATE publishers CASCADE
+TRUNCATE screenshots 
+TRUNCATE tags CASCADE
+
+
+select * from games
+select * from game_categories
+select * from game_developers
+select * from game_details
+select * from game_publishers
+select * from game_genres
+select * from genres
