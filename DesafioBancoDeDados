@@ -166,32 +166,3 @@ CREATE INDEX idx_game_genres_game ON game_genres(game_id);
 CREATE INDEX idx_game_categories_game ON game_categories(game_id);
 CREATE INDEX idx_game_tags_game ON game_tags(game_id);
 CREATE INDEX idx_game_platforms_game ON game_platforms(game_id);
-
-TRUNCATE categories  CASCADE
-TRUNCATE developers CASCADE
-TRUNCATE game_categories
-TRUNCATE game_details
-TRUNCATE game_developers
-TRUNCATE game_genres
-TRUNCATE game_languages
-TRUNCATE game_platforms
-TRUNCATE game_platforms
-TRUNCATE game_publishers
-TRUNCATE game_tags
-TRUNCATE games CASCADE
-TRUNCATE genres CASCADE
-TRUNCATE languages CASCADE
-TRUNCATE movies
-TRUNCATE platforms CASCADE
-TRUNCATE publishers CASCADE
-TRUNCATE screenshots 
-TRUNCATE tags CASCADE
-
-
-select * from games
-select * from game_categories
-select * from game_developers
-select * from game_details
-select * from game_publishers
-select * from game_genres
-select * from genres
