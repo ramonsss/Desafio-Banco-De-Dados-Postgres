@@ -166,3 +166,78 @@ CREATE INDEX idx_game_genres_game ON game_genres(game_id);
 CREATE INDEX idx_game_categories_game ON game_categories(game_id);
 CREATE INDEX idx_game_tags_game ON game_tags(game_id);
 CREATE INDEX idx_game_platforms_game ON game_platforms(game_id);
+
+
+-- SELECTS
+
+-- 1.
+SELECT g.name
+FROM games g
+JOIN game_genres gg ON g.appid = gg.game_id
+JOIN genres gen ON gg.genre_id = gen.id
+WHERE gen.name = 'RPG'
+  AND g.release_date >= CURRENT_DATE - INTERVAL '6 months'
+  AND (g.positive * 1.0 / (g.positive + g.negative)) >= 0.8
+  AND (g.positive + g.negative) >= 10000;
+
+
+-- 2.
+SELECT g.name
+FROM games g
+JOIN game_platforms gp ON g.appid = gp.game_id
+JOIN platforms p ON gp.platform_id = p.id
+WHERE p.name IN ('Windows', 'Mac', 'Linux')
+  AND g.price <= 20
+  AND g.average_playtime_forever >= 120
+GROUP BY g.appid, g.name
+HAVING COUNT(DISTINCT p.name) = 3;
+
+-- 3.
+SELECT d.name,
+       COUNT(g.appid) AS total_jogos,
+       AVG(g.positive * 1.0 / (g.positive + g.negative)) AS media_score
+FROM developers d
+JOIN game_developers gd ON d.id = gd.developer_id
+JOIN games g ON gd.game_id = g.appid
+WHERE g.release_date >= CURRENT_DATE - INTERVAL '12 months'
+GROUP BY d.name
+HAVING COUNT(g.appid) > 5;
+
+-- 4.
+SELECT COUNT(*) AS total_jogos
+FROM games g
+WHERE g.price > 0
+  AND g.release_date >= CURRENT_DATE - INTERVAL '3 months'
+  AND g.median_playtime_forever > 240;
+
+SELECT gen.name, COUNT(*) AS frequencia
+FROM games g
+JOIN game_genres gg ON g.appid = gg.game_id
+JOIN genres gen ON gg.genre_id = gen.id
+WHERE g.price > 0
+  AND g.release_date >= CURRENT_DATE - INTERVAL '3 months'
+  AND g.median_playtime_forever > 240
+GROUP BY gen.name
+ORDER BY frequencia DESC
+LIMIT 5;
+
+-- 5.
+
+WITH top_games AS (
+    SELECT g.appid,
+           (g.positive * 1.0 / (g.positive + g.negative)) AS score
+    FROM games g
+    WHERE g.release_date >= CURRENT_DATE - INTERVAL '6 months'
+    ORDER BY score DESC
+    LIMIT 100
+)
+
+SELECT t.name, COUNT(*) AS frequencia
+FROM top_games tg
+JOIN game_tags gt ON tg.appid = gt.game_id
+JOIN tags t ON gt.tag_id = t.id
+GROUP BY t.name
+ORDER BY frequencia DESC
+LIMIT 1;
+
+
